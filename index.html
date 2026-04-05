@@ -1601,23 +1601,30 @@
     const len   = parseInt($('pwd-len').value);
 
     let charset = '';
-    let mandatory = [];
-    if (upper) { charset += UPPER; mandatory.push(UPPER[Math.floor(Math.random()*UPPER.length)]); }
-    if (lower) { charset += LOWER; mandatory.push(LOWER[Math.floor(Math.random()*LOWER.length)]); }
-    if (nums)  { charset += NUMS;  mandatory.push(NUMS[Math.floor(Math.random()*NUMS.length)]); }
-    if (syms)  { charset += SYMS;  mandatory.push(SYMS[Math.floor(Math.random()*SYMS.length)]); }
+    const charsets = [];
+    if (upper) { charset += UPPER; charsets.push(UPPER); }
+    if (lower) { charset += LOWER; charsets.push(LOWER); }
+    if (nums)  { charset += NUMS;  charsets.push(NUMS); }
+    if (syms)  { charset += SYMS;  charsets.push(SYMS); }
 
     if (!charset) { $('pwd-output').value = ''; updatePwdStrength(''); return; }
 
-    const arr = new Uint32Array(len);
-    crypto.getRandomValues(arr);
-    let pwd = mandatory.map((_, i) => mandatory[i]);
+    // Use crypto.getRandomValues for all randomness
+    const totalRand = charsets.length + len + len; // mandatory + fill + shuffle
+    const randBuf = new Uint32Array(totalRand);
+    crypto.getRandomValues(randBuf);
+    let ri = 0;
+
+    // Pick one guaranteed character from each required charset
+    const mandatory = charsets.map(cs => cs[randBuf[ri++] % cs.length]);
+
+    let pwd = [...mandatory];
     for (let i = mandatory.length; i < len; i++) {
-      pwd.push(charset[arr[i] % charset.length]);
+      pwd.push(charset[randBuf[ri++] % charset.length]);
     }
-    // Shuffle
+    // Shuffle using Fisher-Yates with crypto random values
     for (let i = pwd.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = randBuf[ri++] % (i + 1);
       [pwd[i], pwd[j]] = [pwd[j], pwd[i]];
     }
     const result = pwd.join('');
