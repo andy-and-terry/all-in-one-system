@@ -1,1 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All-in-One System</title>
+  <style>
+    /* ─── CSS Variables ─────────────────────────────────────────────────────── */
+    :root {
+      --accent: #6c63ff;
+      --accent-hover: #574fd6;
+      --danger: #e74c3c;
+      --success: #2ecc71;
+      --warning: #f39c12;
+    }
+    [data-theme="dark"] {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --surface2: #24243a;
+      --border: #2e2e45;
+      --text: #e8e8f0;
+      --text-muted: #7b7b99;
+      --sidebar-bg: #13131c;
+    }
+    [data-theme="light"] {
+      --bg: #f0f0f7;
+      --surface: #ffffff;
+      --surface2: #e8e8f2;
+      --border: #d0d0e0;
+      --text: #1a1a2e;
+      --text-muted: #666688;
+      --sidebar-bg: #e0e0ee;
+    }
 
+    /* ─── Reset & Base ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+    button {
+      cursor: pointer;
+      font-family: inherit;
+      border: none;
+      outline: none;
+    }
+    input, textarea, select {
+      font-family: inherit;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    /* ─── Sidebar ───────────────────────────────────────────────────────────── */
+    #sidebar {
+      width: 64px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 4px;
+      transition: width 0.3s;
+      z-index: 100;
+      overflow: hidden;
+    }
+    #sidebar.expanded { width: 200px; }
+    .sidebar-brand {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 100%;
+      text-align: center;
+    }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 20px;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s, width 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    #sidebar.expanded .nav-btn {
+      width: calc(100% - 16px);
+      justify-content: flex-start;
+      padding: 0 14px;
+    }
+    .nav-btn:hover { background: var(--surface2); color: var(--text); }
+    .nav-btn.active { background: var(--accent); color: #fff; }
+    .nav-label {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      display: none;
+    }
+    #sidebar.expanded .nav-label { display: inline; }
+    .sidebar-spacer { flex: 1; }
+    #toggle-sidebar {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 18px;
+      width: 48px;
+      height: 36px;
+      border-radius: 8px;
+      transition: background 0.2s, color 0.2s;
+    }
+    #toggle-sidebar:hover { background: var(--surface2); color: var(--text); }
+
+    /* ─── Main ──────────────────────────────────────────────────────────────── */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    #page-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    #topbar-right { display: flex; gap: 10px; align-items: center; }
+    #theme-toggle {
+      background: var(--surface2);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    #theme-toggle:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    #content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    /* ─── Cards & Layouts ───────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 14px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+    /* ─── Page visibility ───────────────────────────────────────────────────── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       DASHBOARD
+    ═══════════════════════════════════════════════════════════════════════════ */
+    #dash-hero {
+      background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    #dash-greeting { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+    #dash-clock { font-size: 52px; font-weight: 300; letter-spacing: 2px; }
+    #dash-date { font-size: 16px; opacity: .85; margin-top: 4px; }
+    .stat-val { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .stat-lbl { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    #dash-quick-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .quick-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: var(--text);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .quick-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       TO-DO
+    ═══════════════════════════════════════════════════════════════════════════ */
+    #todo-input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+    #todo-input { flex: 1; }
+    .add-btn {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .add-btn:hover { background: var(--accent-hover); }
+    #todo-filters { display: flex; gap: 8px; margin-bottom: 16px; }
+    .filter-btn {
+      background: var(--surface2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    #todo-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      transition: opacity 0.2s;
+    }
+    .todo-item.done { opacity: 0.5; }
+    .todo-item.done .todo-text { text-decoration: line-through; }
+    .todo-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .todo-item.done .todo-check { background: var(--success); border-color: var(--success); color: #fff; }
+    .todo-text { flex: 1; font-size: 14px; }
+    .todo-del {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 16px;
+      border-radius: 6px;
+      padding: 2px 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .todo-del:hover { color: var(--danger); background: rgba(231,76,60,.1); }
+    #todo-count { color: var(--text-muted); font-size: 13px; margin-top: 12px; }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       NOTES
+    ═══════════════════════════════════════════════════════════════════════════ */
+    #notes-layout { display: grid; grid-template-columns: 240px 1fr; gap: 16px; height: calc(100vh - 140px); }
+    #notes-sidebar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #notes-sidebar-top { padding: 12px; border-bottom: 1px solid var(--border); }
+    #new-note-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    #new-note-btn:hover { background: var(--accent-hover); }
+    #notes-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .note-item {
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+    }
+    .note-item:hover { background: var(--surface2); }
+    .note-item.active { background: var(--accent); color: #fff; }
+    .note-item-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .note-item-date { font-size: 11px; opacity: .65; margin-top: 2px; }
+    .note-item-del {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      background: transparent; color: var(--danger); font-size: 14px; display: none;
+      border-radius: 4px; padding: 2px 5px;
+    }
+    .note-item:hover .note-item-del { display: block; }
+    .note-item.active .note-item-del { display: block; color: rgba(255,255,255,.8); }
+    #notes-editor { display: flex; flex-direction: column; gap: 10px; }
+    #note-title-input {
+      font-size: 20px;
+      font-weight: 700;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid var(--border);
+      border-radius: 0;
+      padding: 8px 0;
+    }
+    #note-title-input:focus { border-bottom-color: var(--accent); }
+    #note-body-input {
+      flex: 1;
+      border-radius: 12px;
+      resize: none;
+      font-size: 15px;
+      line-height: 1.6;
+      padding: 14px;
+      min-height: 400px;
+    }
+    #note-status { font-size: 12px; color: var(--text-muted); }
+    #no-note-selected {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; color: var(--text-muted); font-size: 16px; gap: 12px;
+    }
+    #no-note-selected .big-icon { font-size: 64px; }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       CALCULATOR
+    ═══════════════════════════════════════════════════════════════════════════ */
+    #calc-wrap {
+      max-width: 320px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+    }
+    #calc-display {
+      background: var(--surface2);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+      text-align: right;
+    }
+    #calc-expr { font-size: 13px; color: var(--text-muted); min-height: 20px; }
+    #calc-result { font-size: 36px; font-weight: 300; word-break: break-all; }
+    #calc-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .calc-btn {
+      border-radius: 12px;
+      padding: 18px 0;
+      font-size: 16px;
+      font-weight: 500;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      transition: background 0.15s, transform 0.1s;
+    }
+    .calc-btn:active { transform: scale(.95); }
+    .calc-btn:hover { background: var(--border); }
+    .calc-btn.op { background: rgba(108,99,255,.15); color: var(--accent); border-color: rgba(108,99,255,.3); }
+    .calc-btn.op:hover { background: rgba(108,99,255,.3); }
+    .calc-btn.eq { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .calc-btn.eq:hover { background: var(--accent-hover); }
+    .calc-btn.clr { background: rgba(231,76,60,.15); color: var(--danger); border-color: rgba(231,76,60,.3); }
+    .calc-btn.clr:hover { background: rgba(231,76,60,.3); }
+    .calc-btn.wide { grid-column: span 2; }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       CALENDAR
+    ═══════════════════════════════════════════════════════════════════════════ */
+    #cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    #cal-month-label { font-size: 20px; font-weight: 700; }
+    .cal-nav-btn {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+    .cal-nav-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    #cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-dow {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      padding: 6px 0;
+    }
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+      background: var(--surface2);
+    }
+    .cal-day:hover { background: var(--border); }
+    .cal-day.other-month { opacity: 0.3; }
+    .cal-day.today { background: var(--accent); color: #fff; font-weight: 700; }
+    .cal-day.has-event::after {
+      content: '';
+      width: 5px; height: 5px;
+      background: var(--warning);
+      border-radius: 50%;
+      position: absolute;
+      bottom: 5px;
+    }
+    .cal-day.today.has-event::after { background: #fff; }
+    #cal-event-panel { margin-top: 20px; }
+    #cal-selected-date { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--accent); }
+    #cal-events-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .cal-event {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface2);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+    .cal-event-del { background: transparent; color: var(--danger); font-size: 14px; }
+    #cal-add-row { display: flex; gap: 8px; }
+    #cal-event-input { flex: 1; }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       TIMER / STOPWATCH
+    ═══════════════════════════════════════════════════════════════════════════ */
+    #timer-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .timer-tab {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .timer-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .timer-panel { display: none; }
+    .timer-panel.active { display: block; }
+    #timer-display, #sw-display {
+      font-size: 72px;
+      font-weight: 200;
+      letter-spacing: 4px;
+      text-align: center;
+      padding: 32px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .timer-controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .timer-btn {
+      border-radius: 50px;
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .timer-btn.start { background: var(--success); color: #fff; }
+    .timer-btn.start:hover { filter: brightness(1.1); }
+    .timer-btn.pause { background: var(--warning); color: #fff; }
+    .timer-btn.pause:hover { filter: brightness(1.1); }
+    .timer-btn.stop { background: var(--danger); color: #fff; }
+    .timer-btn.stop:hover { filter: brightness(1.1); }
+    .timer-btn.reset { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    #timer-set { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+    #timer-set input { width: 80px; text-align: center; font-size: 20px; }
+    #sw-laps { margin-top: 16px; max-height: 220px; overflow-y: auto; }
+    #sw-laps-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .lap-item {
+      display: flex; justify-content: space-between;
+      background: var(--surface2); border-radius: 8px;
+      padding: 8px 14px; font-size: 13px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       UNIT CONVERTER
+    ═══════════════════════════════════════════════════════════════════════════ */
+    #conv-type-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .conv-tab {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .conv-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .conv-panel { display: none; }
+    .conv-panel.active { display: block; }
+    .conv-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .conv-row input, .conv-row select { flex: 1; min-width: 100px; }
+    .conv-eq { font-size: 20px; color: var(--text-muted); }
+    #conv-result {
+      background: var(--surface2);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 12px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       PASSWORD GENERATOR
+    ═══════════════════════════════════════════════════════════════════════════ */
+    #pwd-output-row {
+      display: flex; gap: 10px; align-items: center;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+    #pwd-output { flex: 1; font-size: 18px; font-family: monospace; background: transparent; border: none; color: var(--text); }
+    #pwd-copy-btn {
+      background: var(--accent); color: #fff;
+      border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600;
+      transition: background 0.2s;
+    }
+    #pwd-copy-btn:hover { background: var(--accent-hover); }
+    .pwd-option { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .pwd-option label { font-size: 14px; }
+    .pwd-option input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+    .pwd-option input[type="range"] { width: 160px; accent-color: var(--accent); }
+    #pwd-len-val { font-weight: 700; color: var(--accent); min-width: 28px; text-align: right; }
+    #pwd-strength-bar { height: 6px; border-radius: 3px; background: var(--border); margin-bottom: 12px; overflow: hidden; }
+    #pwd-strength-fill { height: 100%; border-radius: 3px; transition: width 0.3s, background 0.3s; width: 0; }
+    #pwd-strength-label { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+    #pwd-gen-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    #pwd-gen-btn:hover { background: var(--accent-hover); }
+
+    /* ─── Scrollbar ─────────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ─── Responsive ────────────────────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      #notes-layout { grid-template-columns: 1fr; height: auto; }
+      #notes-sidebar { height: 200px; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
+  <nav id="sidebar">
+    <div class="sidebar-brand">⚡ AIO</div>
+    <button class="nav-btn active" data-page="dashboard">
+      <span>🏠</span><span class="nav-label">Dashboard</span>
+    </button>
+    <button class="nav-btn" data-page="todo">
+      <span>✅</span><span class="nav-label">To-Do</span>
+    </button>
+    <button class="nav-btn" data-page="notes">
+      <span>📝</span><span class="nav-label">Notes</span>
+    </button>
+    <button class="nav-btn" data-page="calculator">
+      <span>🔢</span><span class="nav-label">Calculator</span>
+    </button>
+    <button class="nav-btn" data-page="calendar">
+      <span>📅</span><span class="nav-label">Calendar</span>
+    </button>
+    <button class="nav-btn" data-page="timer">
+      <span>⏱️</span><span class="nav-label">Timer</span>
+    </button>
+    <button class="nav-btn" data-page="converter">
+      <span>🔄</span><span class="nav-label">Converter</span>
+    </button>
+    <button class="nav-btn" data-page="password">
+      <span>🔐</span><span class="nav-label">Password</span>
+    </button>
+    <div class="sidebar-spacer"></div>
+    <button id="toggle-sidebar" title="Toggle sidebar">☰</button>
+  </nav>
+
+  <!-- ═══ MAIN ══════════════════════════════════════════════════════════════ -->
+  <div id="main">
+    <div id="topbar">
+      <span id="page-title">Dashboard</span>
+      <div id="topbar-right">
+        <button id="theme-toggle">🌙 Dark</button>
+      </div>
+    </div>
+
+    <div id="content">
+
+      <!-- ── DASHBOARD ──────────────────────────────────────────────────── -->
+      <div class="page active" id="page-dashboard">
+        <div id="dash-hero">
+          <div id="dash-greeting">Good morning!</div>
+          <div id="dash-clock">00:00:00</div>
+          <div id="dash-date">Sunday, January 1</div>
+        </div>
+        <div class="grid-3" style="margin-bottom:16px">
+          <div class="card">
+            <div class="card-title">Tasks</div>
+            <div class="stat-val" id="dash-tasks-count">0</div>
+            <div class="stat-lbl">remaining today</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Notes</div>
+            <div class="stat-val" id="dash-notes-count">0</div>
+            <div class="stat-lbl">saved notes</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Events</div>
+            <div class="stat-val" id="dash-events-count">0</div>
+            <div class="stat-lbl">upcoming</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Quick Actions</div>
+          <div id="dash-quick-actions">
+            <button class="quick-btn" data-page="todo">✅ Add Task</button>
+            <button class="quick-btn" data-page="notes">📝 New Note</button>
+            <button class="quick-btn" data-page="timer">⏱️ Start Timer</button>
+            <button class="quick-btn" data-page="calculator">🔢 Calculator</button>
+            <button class="quick-btn" data-page="password">🔐 Generate Password</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TO-DO ──────────────────────────────────────────────────────── -->
+      <div class="page" id="page-todo">
+        <div class="card">
+          <div id="todo-input-row">
+            <input type="text" id="todo-input" placeholder="Add a new task…" maxlength="200" />
+            <button class="add-btn" id="todo-add-btn">+ Add</button>
+          </div>
+          <div id="todo-filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="active">Active</button>
+            <button class="filter-btn" data-filter="done">Done</button>
+          </div>
+          <ul id="todo-list"></ul>
+          <div id="todo-count"></div>
+        </div>
+      </div>
+
+      <!-- ── NOTES ─────────────────────────────────────────────────────── -->
+      <div class="page" id="page-notes">
+        <div id="notes-layout">
+          <div id="notes-sidebar">
+            <div id="notes-sidebar-top">
+              <button id="new-note-btn">+ New Note</button>
+            </div>
+            <div id="notes-list"></div>
+          </div>
+          <div id="notes-editor" style="display:none">
+            <input type="text" id="note-title-input" placeholder="Note title…" />
+            <textarea id="note-body-input" placeholder="Start writing…"></textarea>
+            <span id="note-status">All changes saved</span>
+          </div>
+          <div id="no-note-selected">
+            <span class="big-icon">📝</span>
+            <span>Select a note or create a new one</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CALCULATOR ─────────────────────────────────────────────────── -->
+      <div class="page" id="page-calculator">
+        <div id="calc-wrap">
+          <div id="calc-display">
+            <div id="calc-expr"></div>
+            <div id="calc-result">0</div>
+          </div>
+          <div id="calc-buttons">
+            <button class="calc-btn clr" data-calc="AC">AC</button>
+            <button class="calc-btn op"  data-calc="+/-">±</button>
+            <button class="calc-btn op"  data-calc="%">%</button>
+            <button class="calc-btn op"  data-calc="/">÷</button>
+
+            <button class="calc-btn" data-calc="7">7</button>
+            <button class="calc-btn" data-calc="8">8</button>
+            <button class="calc-btn" data-calc="9">9</button>
+            <button class="calc-btn op" data-calc="*">×</button>
+
+            <button class="calc-btn" data-calc="4">4</button>
+            <button class="calc-btn" data-calc="5">5</button>
+            <button class="calc-btn" data-calc="6">6</button>
+            <button class="calc-btn op" data-calc="-">−</button>
+
+            <button class="calc-btn" data-calc="1">1</button>
+            <button class="calc-btn" data-calc="2">2</button>
+            <button class="calc-btn" data-calc="3">3</button>
+            <button class="calc-btn op" data-calc="+">+</button>
+
+            <button class="calc-btn wide" data-calc="0">0</button>
+            <button class="calc-btn" data-calc=".">.</button>
+            <button class="calc-btn eq" data-calc="=">=</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CALENDAR ───────────────────────────────────────────────────── -->
+      <div class="page" id="page-calendar">
+        <div class="card">
+          <div id="cal-header">
+            <button class="cal-nav-btn" id="cal-prev">‹</button>
+            <span id="cal-month-label"></span>
+            <button class="cal-nav-btn" id="cal-next">›</button>
+          </div>
+          <div id="cal-grid"></div>
+          <div id="cal-event-panel">
+            <div id="cal-selected-date">Select a day to manage events</div>
+            <ul id="cal-events-list"></ul>
+            <div id="cal-add-row">
+              <input type="text" id="cal-event-input" placeholder="Add event for selected day…" />
+              <button class="add-btn" id="cal-add-btn">+ Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TIMER / STOPWATCH ──────────────────────────────────────────── -->
+      <div class="page" id="page-timer">
+        <div id="timer-tabs">
+          <button class="timer-tab active" data-ttab="stopwatch">Stopwatch</button>
+          <button class="timer-tab" data-ttab="countdown">Countdown Timer</button>
+        </div>
+
+        <!-- Stopwatch -->
+        <div class="timer-panel active card" id="panel-stopwatch">
+          <div id="sw-display">00:00.000</div>
+          <div class="timer-controls">
+            <button class="timer-btn start" id="sw-start">▶ Start</button>
+            <button class="timer-btn pause" id="sw-lap" disabled>⚑ Lap</button>
+            <button class="timer-btn reset" id="sw-reset">↺ Reset</button>
+          </div>
+          <div id="sw-laps">
+            <ul id="sw-laps-list"></ul>
+          </div>
+        </div>
+
+        <!-- Countdown -->
+        <div class="timer-panel card" id="panel-countdown">
+          <div id="timer-set">
+            <input type="number" id="timer-h" placeholder="HH" min="0" max="23" value="0" />
+            <span style="font-size:24px;align-self:center">:</span>
+            <input type="number" id="timer-m" placeholder="MM" min="0" max="59" value="5" />
+            <span style="font-size:24px;align-self:center">:</span>
+            <input type="number" id="timer-s" placeholder="SS" min="0" max="59" value="0" />
+          </div>
+          <div id="timer-display">00:05:00</div>
+          <div class="timer-controls">
+            <button class="timer-btn start" id="timer-start">▶ Start</button>
+            <button class="timer-btn pause" id="timer-pause" disabled>⏸ Pause</button>
+            <button class="timer-btn stop"  id="timer-reset">■ Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── UNIT CONVERTER ─────────────────────────────────────────────── -->
+      <div class="page" id="page-converter">
+        <div class="card">
+          <div id="conv-type-tabs">
+            <button class="conv-tab active" data-conv="length">📏 Length</button>
+            <button class="conv-tab" data-conv="weight">⚖️ Weight</button>
+            <button class="conv-tab" data-conv="temp">🌡️ Temperature</button>
+            <button class="conv-tab" data-conv="speed">💨 Speed</button>
+            <button class="conv-tab" data-conv="area">📐 Area</button>
+          </div>
+
+          <div class="conv-panel active" id="conv-length">
+            <div class="conv-row">
+              <input type="number" id="len-val" placeholder="Value" />
+              <select id="len-from">
+                <option value="m">Metres</option><option value="km">Kilometres</option>
+                <option value="cm">Centimetres</option><option value="mm">Millimetres</option>
+                <option value="mi">Miles</option><option value="yd">Yards</option>
+                <option value="ft">Feet</option><option value="in">Inches</option>
+              </select>
+              <span class="conv-eq">→</span>
+              <select id="len-to">
+                <option value="km">Kilometres</option><option value="m">Metres</option>
+                <option value="cm">Centimetres</option><option value="mm">Millimetres</option>
+                <option value="mi">Miles</option><option value="yd">Yards</option>
+                <option value="ft">Feet</option><option value="in">Inches</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="conv-panel" id="conv-weight">
+            <div class="conv-row">
+              <input type="number" id="wt-val" placeholder="Value" />
+              <select id="wt-from">
+                <option value="kg">Kilograms</option><option value="g">Grams</option>
+                <option value="lb">Pounds</option><option value="oz">Ounces</option>
+                <option value="t">Metric Tonnes</option><option value="st">Stone</option>
+              </select>
+              <span class="conv-eq">→</span>
+              <select id="wt-to">
+                <option value="lb">Pounds</option><option value="kg">Kilograms</option>
+                <option value="g">Grams</option><option value="oz">Ounces</option>
+                <option value="t">Metric Tonnes</option><option value="st">Stone</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="conv-panel" id="conv-temp">
+            <div class="conv-row">
+              <input type="number" id="tmp-val" placeholder="Value" />
+              <select id="tmp-from">
+                <option value="C">Celsius (°C)</option>
+                <option value="F">Fahrenheit (°F)</option>
+                <option value="K">Kelvin (K)</option>
+              </select>
+              <span class="conv-eq">→</span>
+              <select id="tmp-to">
+                <option value="F">Fahrenheit (°F)</option>
+                <option value="C">Celsius (°C)</option>
+                <option value="K">Kelvin (K)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="conv-panel" id="conv-speed">
+            <div class="conv-row">
+              <input type="number" id="spd-val" placeholder="Value" />
+              <select id="spd-from">
+                <option value="ms">m/s</option><option value="kmh">km/h</option>
+                <option value="mph">mph</option><option value="kn">Knots</option>
+              </select>
+              <span class="conv-eq">→</span>
+              <select id="spd-to">
+                <option value="kmh">km/h</option><option value="ms">m/s</option>
+                <option value="mph">mph</option><option value="kn">Knots</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="conv-panel" id="conv-area">
+            <div class="conv-row">
+              <input type="number" id="area-val" placeholder="Value" />
+              <select id="area-from">
+                <option value="m2">m²</option><option value="km2">km²</option>
+                <option value="cm2">cm²</option><option value="ha">Hectares</option>
+                <option value="ac">Acres</option><option value="ft2">ft²</option>
+                <option value="mi2">mi²</option>
+              </select>
+              <span class="conv-eq">→</span>
+              <select id="area-to">
+                <option value="km2">km²</option><option value="m2">m²</option>
+                <option value="cm2">cm²</option><option value="ha">Hectares</option>
+                <option value="ac">Acres</option><option value="ft2">ft²</option>
+                <option value="mi2">mi²</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="conv-result">—</div>
+        </div>
+      </div>
+
+      <!-- ── PASSWORD GENERATOR ─────────────────────────────────────────── -->
+      <div class="page" id="page-password">
+        <div class="card" style="max-width:480px;margin:0 auto">
+          <div id="pwd-output-row">
+            <input type="text" id="pwd-output" readonly />
+            <button id="pwd-copy-btn">Copy</button>
+          </div>
+          <div id="pwd-strength-bar"><div id="pwd-strength-fill"></div></div>
+          <div id="pwd-strength-label">Strength: —</div>
+          <div class="pwd-option">
+            <label>Length: <span id="pwd-len-val">16</span></label>
+            <input type="range" id="pwd-len" min="4" max="64" value="16" />
+          </div>
+          <div class="pwd-option">
+            <label>Uppercase (A–Z)</label>
+            <input type="checkbox" id="pwd-upper" checked />
+          </div>
+          <div class="pwd-option">
+            <label>Lowercase (a–z)</label>
+            <input type="checkbox" id="pwd-lower" checked />
+          </div>
+          <div class="pwd-option">
+            <label>Numbers (0–9)</label>
+            <input type="checkbox" id="pwd-nums" checked />
+          </div>
+          <div class="pwd-option">
+            <label>Symbols (!@#$…)</label>
+            <input type="checkbox" id="pwd-syms" checked />
+          </div>
+          <button id="pwd-gen-btn">🔄 Generate Password</button>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       JAVASCRIPT
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <script>
+  'use strict';
+
+  /* ── helpers ─────────────────────────────────────────────────────────── */
+  const $ = id => document.getElementById(id);
+  const pad = (n, w=2) => String(Math.floor(n)).padStart(w, '0');
+
+  function save(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+  }
+  function load(key, def) {
+    try {
+      const v = localStorage.getItem(key);
+      return v !== null ? JSON.parse(v) : def;
+    } catch(e) { return def; }
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     NAVIGATION
+  ══════════════════════════════════════════════════════════════════════ */
+  const pages = {};
+  document.querySelectorAll('.page').forEach(p => pages[p.id.replace('page-', '')] = p);
+
+  function navigate(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const page = pages[name];
+    if (page) page.classList.add('active');
+    const btn = document.querySelector(`.nav-btn[data-page="${name}"]`);
+    if (btn) btn.classList.add('active');
+    $('page-title').textContent = btn ? btn.querySelector('.nav-label').textContent : name;
+    updateDashStats();
+  }
+
+  document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => navigate(btn.dataset.page));
+  });
+  document.querySelectorAll('.quick-btn[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => navigate(btn.dataset.page));
+  });
+
+  // Sidebar toggle
+  const sidebar = $('sidebar');
+  $('toggle-sidebar').addEventListener('click', () => sidebar.classList.toggle('expanded'));
+
+  /* ══════════════════════════════════════════════════════════════════════
+     THEME
+  ══════════════════════════════════════════════════════════════════════ */
+  let theme = load('theme', 'dark');
+  function applyTheme(t) {
+    theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    $('theme-toggle').textContent = t === 'dark' ? '☀️ Light' : '🌙 Dark';
+    save('theme', t);
+  }
+  applyTheme(theme);
+  $('theme-toggle').addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+
+  /* ══════════════════════════════════════════════════════════════════════
+     DASHBOARD CLOCK
+  ══════════════════════════════════════════════════════════════════════ */
+  const DAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+
+  function updateClock() {
+    const now = new Date();
+    const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    $('dash-clock').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    $('dash-date').textContent = `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
+    const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    $('dash-greeting').textContent = g + '!';
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  function updateDashStats() {
+    const todos = load('todos', []);
+    const remaining = todos.filter(t => !t.done).length;
+    $('dash-tasks-count').textContent = remaining;
+    $('dash-notes-count').textContent = load('notes', []).length;
+    const events = load('cal-events', {});
+    const total = Object.values(events).reduce((a, arr) => a + arr.length, 0);
+    $('dash-events-count').textContent = total;
+  }
+  updateDashStats();
+
+  /* ══════════════════════════════════════════════════════════════════════
+     TO-DO
+  ══════════════════════════════════════════════════════════════════════ */
+  let todos = load('todos', []);
+  let todoFilter = 'all';
+
+  function saveTodos() { save('todos', todos); }
+
+  function renderTodos() {
+    const list = $('todo-list');
+    list.innerHTML = '';
+    const filtered = todos.filter(t => {
+      if (todoFilter === 'active') return !t.done;
+      if (todoFilter === 'done')   return t.done;
+      return true;
+    });
+    if (!filtered.length) {
+      list.innerHTML = '<li style="text-align:center;color:var(--text-muted);padding:20px">Nothing here yet 🎉</li>';
+    }
+    filtered.forEach(todo => {
+      const li = document.createElement('li');
+      li.className = 'todo-item' + (todo.done ? ' done' : '');
+      li.innerHTML = `
+        <button class="todo-check" data-id="${todo.id}">${todo.done ? '✓' : ''}</button>
+        <span class="todo-text">${escHtml(todo.text)}</span>
+        <button class="todo-del" data-id="${todo.id}" title="Delete">✕</button>`;
+      list.appendChild(li);
+    });
+    const active = todos.filter(t => !t.done).length;
+    $('todo-count').textContent = `${active} task${active !== 1 ? 's' : ''} remaining`;
+    updateDashStats();
+  }
+
+  $('todo-add-btn').addEventListener('click', addTodo);
+  $('todo-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTodo(); });
+
+  function addTodo() {
+    const text = $('todo-input').value.trim();
+    if (!text) return;
+    todos.unshift({ id: Date.now(), text, done: false });
+    saveTodos();
+    $('todo-input').value = '';
+    renderTodos();
+  }
+
+  $('todo-list').addEventListener('click', e => {
+    const checkBtn = e.target.closest('.todo-check');
+    const delBtn   = e.target.closest('.todo-del');
+    if (checkBtn) {
+      const id = Number(checkBtn.dataset.id);
+      const t = todos.find(x => x.id === id);
+      if (t) { t.done = !t.done; saveTodos(); renderTodos(); }
+    }
+    if (delBtn) {
+      const id = Number(delBtn.dataset.id);
+      todos = todos.filter(x => x.id !== id);
+      saveTodos();
+      renderTodos();
+    }
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      todoFilter = btn.dataset.filter;
+      renderTodos();
+    });
+  });
+
+  renderTodos();
+
+  /* ══════════════════════════════════════════════════════════════════════
+     NOTES
+  ══════════════════════════════════════════════════════════════════════ */
+  let notes = load('notes', []);
+  let activeNoteId = null;
+  let noteTimer = null;
+
+  function saveNotes() { save('notes', notes); }
+
+  function renderNotesList() {
+    const list = $('notes-list');
+    list.innerHTML = '';
+    if (!notes.length) {
+      list.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:13px;text-align:center">No notes yet</div>';
+      return;
+    }
+    notes.forEach(n => {
+      const div = document.createElement('div');
+      div.className = 'note-item' + (n.id === activeNoteId ? ' active' : '');
+      div.dataset.id = n.id;
+      div.innerHTML = `
+        <div class="note-item-title">${escHtml(n.title || 'Untitled')}</div>
+        <div class="note-item-date">${new Date(n.updated).toLocaleDateString()}</div>
+        <button class="note-item-del" data-id="${n.id}" title="Delete">✕</button>`;
+      list.appendChild(div);
+    });
+    updateDashStats();
+  }
+
+  function openNote(id) {
+    activeNoteId = id;
+    const n = notes.find(x => x.id === id);
+    if (!n) return;
+    $('note-title-input').value = n.title;
+    $('note-body-input').value  = n.body;
+    $('notes-editor').style.display = 'flex';
+    $('no-note-selected').style.display = 'none';
+    renderNotesList();
+  }
+
+  $('new-note-btn').addEventListener('click', () => {
+    const n = { id: Date.now(), title: '', body: '', updated: Date.now() };
+    notes.unshift(n);
+    saveNotes();
+    renderNotesList();
+    openNote(n.id);
+    $('note-title-input').focus();
+  });
+
+  $('notes-list').addEventListener('click', e => {
+    const del = e.target.closest('.note-item-del');
+    const item = e.target.closest('.note-item');
+    if (del) {
+      e.stopPropagation();
+      const id = Number(del.dataset.id);
+      notes = notes.filter(x => x.id !== id);
+      saveNotes();
+      if (activeNoteId === id) {
+        activeNoteId = null;
+        $('notes-editor').style.display = 'none';
+        $('no-note-selected').style.display = 'flex';
+      }
+      renderNotesList();
+    } else if (item) {
+      openNote(Number(item.dataset.id));
+    }
+  });
+
+  function autoSaveNote() {
+    if (!activeNoteId) return;
+    const n = notes.find(x => x.id === activeNoteId);
+    if (!n) return;
+    n.title   = $('note-title-input').value;
+    n.body    = $('note-body-input').value;
+    n.updated = Date.now();
+    saveNotes();
+    renderNotesList();
+    $('note-status').textContent = 'Saved ✓';
+    setTimeout(() => { $('note-status').textContent = 'All changes saved'; }, 1500);
+  }
+
+  ['note-title-input', 'note-body-input'].forEach(id => {
+    $(id).addEventListener('input', () => {
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(autoSaveNote, 600);
+    });
+  });
+
+  renderNotesList();
+
+  /* ══════════════════════════════════════════════════════════════════════
+     CALCULATOR
+  ══════════════════════════════════════════════════════════════════════ */
+  let calcExpr = '';
+  let calcResult = '0';
+  let calcJustEvaled = false;
+
+  function updateCalcDisplay() {
+    $('calc-expr').textContent   = calcExpr;
+    $('calc-result').textContent = calcResult;
+  }
+
+  $('calc-buttons').addEventListener('click', e => {
+    const btn = e.target.closest('.calc-btn');
+    if (!btn) return;
+    const v = btn.dataset.calc;
+    handleCalc(v);
+  });
+
+  document.addEventListener('keydown', e => {
+    const map = { 'Enter':'=', 'Backspace':'DEL', 'Escape':'AC',
+                  '+':'+', '-':'-', '*':'*', '/':'/', '%':'%', '.':'.' };
+    const k = map[e.key] || (e.key >= '0' && e.key <= '9' ? e.key : null);
+    if (k) handleCalc(k);
+  });
+
+  function handleCalc(v) {
+    const ops = ['+', '-', '*', '/'];
+    if (v === 'AC') {
+      calcExpr = ''; calcResult = '0'; calcJustEvaled = false;
+    } else if (v === 'DEL') {
+      if (calcJustEvaled) { calcExpr = ''; calcResult = '0'; calcJustEvaled = false; }
+      else calcExpr = calcExpr.slice(0, -1) || '';
+      calcResult = calcExpr ? safeEval(calcExpr) : '0';
+    } else if (v === '=') {
+      if (!calcExpr) return;
+      const res = safeEval(calcExpr);
+      calcExpr  = res;
+      calcResult = res;
+      calcJustEvaled = true;
+    } else if (v === '+/-') {
+      if (calcResult !== '0') {
+        if (calcExpr.startsWith('-')) calcExpr = calcExpr.slice(1);
+        else calcExpr = '-' + calcExpr;
+        calcResult = safeEval(calcExpr);
+      }
+    } else if (v === '%') {
+      calcExpr += '%';
+      calcResult = safeEval(calcExpr);
+    } else {
+      if (calcJustEvaled && !ops.includes(v)) {
+        calcExpr = ''; calcJustEvaled = false;
+      }
+      calcExpr += v;
+      calcResult = safeEval(calcExpr);
+    }
+    updateCalcDisplay();
+  }
+
+  function safeEval(expr) {
+    try {
+      const cleaned = expr
+        .replace(/%/g, '/100')
+        .replace(/[^0-9+\-*/.()]/g, '');
+      if (!cleaned) return '0';
+      const result = Function('"use strict"; return (' + cleaned + ')')();
+      if (!isFinite(result)) return 'Error';
+      const rounded = parseFloat(result.toPrecision(12));
+      return String(rounded);
+    } catch(e) { return calcResult; }
+  }
+
+  updateCalcDisplay();
+
+  /* ══════════════════════════════════════════════════════════════════════
+     CALENDAR
+  ══════════════════════════════════════════════════════════════════════ */
+  let calDate = new Date();
+  let calSelected = null;
+  let calEvents = load('cal-events', {});
+
+  function calKey(d) {
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function renderCalendar() {
+    const year = calDate.getFullYear(), month = calDate.getMonth();
+    $('cal-month-label').textContent = `${MONTHS[month]} ${year}`;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const today = new Date();
+    const grid = $('cal-grid');
+    grid.innerHTML = '';
+
+    // Day-of-week headers
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-dow';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    // Empty cells
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day other-month';
+      grid.appendChild(el);
+    }
+
+    // Day cells
+    for (let d = 1; d <= daysInMonth; d++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day';
+      const thisDate = new Date(year, month, d);
+      const key = calKey(thisDate);
+      if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d)
+        el.classList.add('today');
+      if (calSelected === key) el.style.outline = '2px solid var(--accent)';
+      if (calEvents[key] && calEvents[key].length) el.classList.add('has-event');
+      el.textContent = d;
+      el.addEventListener('click', () => selectCalDay(key));
+      grid.appendChild(el);
+    }
+  }
+
+  function selectCalDay(key) {
+    calSelected = key;
+    const [y,m,d] = key.split('-');
+    $('cal-selected-date').textContent =
+      `${DAYS[new Date(+y,+m-1,+d).getDay()]}, ${MONTHS[+m-1]} ${+d}, ${y}`;
+    renderCalEventsList();
+    renderCalendar();
+  }
+
+  function renderCalEventsList() {
+    const ul = $('cal-events-list');
+    ul.innerHTML = '';
+    if (!calSelected) return;
+    const events = calEvents[calSelected] || [];
+    if (!events.length) {
+      ul.innerHTML = '<li style="color:var(--text-muted);font-size:13px">No events</li>';
+      return;
+    }
+    events.forEach((ev, idx) => {
+      const li = document.createElement('li');
+      li.className = 'cal-event';
+      li.innerHTML = `<span>${escHtml(ev)}</span>
+        <button class="cal-event-del" data-idx="${idx}" title="Delete">✕</button>`;
+      ul.appendChild(li);
+    });
+  }
+
+  $('cal-events-list').addEventListener('click', e => {
+    const btn = e.target.closest('.cal-event-del');
+    if (!btn || !calSelected) return;
+    const idx = Number(btn.dataset.idx);
+    calEvents[calSelected].splice(idx, 1);
+    if (!calEvents[calSelected].length) delete calEvents[calSelected];
+    save('cal-events', calEvents);
+    renderCalEventsList();
+    renderCalendar();
+    updateDashStats();
+  });
+
+  $('cal-add-btn').addEventListener('click', addCalEvent);
+  $('cal-event-input').addEventListener('keydown', e => { if (e.key === 'Enter') addCalEvent(); });
+
+  function addCalEvent() {
+    if (!calSelected) return;
+    const text = $('cal-event-input').value.trim();
+    if (!text) return;
+    if (!calEvents[calSelected]) calEvents[calSelected] = [];
+    calEvents[calSelected].push(text);
+    save('cal-events', calEvents);
+    $('cal-event-input').value = '';
+    renderCalEventsList();
+    renderCalendar();
+    updateDashStats();
+  }
+
+  $('cal-prev').addEventListener('click', () => {
+    calDate.setMonth(calDate.getMonth() - 1);
+    renderCalendar();
+  });
+  $('cal-next').addEventListener('click', () => {
+    calDate.setMonth(calDate.getMonth() + 1);
+    renderCalendar();
+  });
+
+  renderCalendar();
+
+  /* ══════════════════════════════════════════════════════════════════════
+     TIMER — TABS
+  ══════════════════════════════════════════════════════════════════════ */
+  document.querySelectorAll('.timer-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.timer-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.timer-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      $('panel-' + tab.dataset.ttab).classList.add('active');
+    });
+  });
+
+  /* ── Stopwatch ───────────────────────────────────────────────────── */
+  let swRunning = false, swStart = 0, swElapsed = 0, swRaf = null, swLaps = [];
+
+  function swUpdate() {
+    const elapsed = swElapsed + (Date.now() - swStart);
+    const ms  = elapsed % 1000;
+    const sec = Math.floor(elapsed / 1000) % 60;
+    const min = Math.floor(elapsed / 60000);
+    $('sw-display').textContent = `${pad(min)}:${pad(sec)}.${pad(ms, 3)}`;
+    if (swRunning) swRaf = requestAnimationFrame(swUpdate);
+  }
+
+  $('sw-start').addEventListener('click', () => {
+    if (!swRunning) {
+      swRunning = true;
+      swStart = Date.now();
+      $('sw-start').textContent = '⏸ Pause';
+      $('sw-lap').disabled = false;
+      swRaf = requestAnimationFrame(swUpdate);
+    } else {
+      swRunning = false;
+      swElapsed += Date.now() - swStart;
+      cancelAnimationFrame(swRaf);
+      $('sw-start').textContent = '▶ Start';
+    }
+  });
+
+  $('sw-lap').addEventListener('click', () => {
+    const elapsed = swElapsed + (Date.now() - swStart);
+    const ms  = elapsed % 1000;
+    const sec = Math.floor(elapsed / 1000) % 60;
+    const min = Math.floor(elapsed / 60000);
+    swLaps.unshift(`${pad(min)}:${pad(sec)}.${pad(ms, 3)}`);
+    renderSwLaps();
+  });
+
+  $('sw-reset').addEventListener('click', () => {
+    swRunning = false;
+    cancelAnimationFrame(swRaf);
+    swElapsed = 0;
+    swLaps = [];
+    $('sw-display').textContent = '00:00.000';
+    $('sw-start').textContent = '▶ Start';
+    $('sw-lap').disabled = true;
+    renderSwLaps();
+  });
+
+  function renderSwLaps() {
+    const ul = $('sw-laps-list');
+    ul.innerHTML = '';
+    swLaps.forEach((l, i) => {
+      const li = document.createElement('li');
+      li.className = 'lap-item';
+      li.innerHTML = `<span>Lap ${swLaps.length - i}</span><span>${l}</span>`;
+      ul.appendChild(li);
+    });
+  }
+
+  /* ── Countdown ───────────────────────────────────────────────────── */
+  let cntRunning = false, cntRemaining = 0, cntInterval = null;
+
+  function cntGetSet() {
+    const h = parseInt($('timer-h').value) || 0;
+    const m = parseInt($('timer-m').value) || 0;
+    const s = parseInt($('timer-s').value) || 0;
+    return (h * 3600 + m * 60 + s) * 1000;
+  }
+
+  function cntDisplay(ms) {
+    const s = Math.ceil(ms / 1000);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    $('timer-display').textContent = `${pad(h)}:${pad(m)}:${pad(sec)}`;
+  }
+
+  ['timer-h','timer-m','timer-s'].forEach(id => {
+    $(id).addEventListener('input', () => {
+      if (!cntRunning) cntDisplay(cntGetSet());
+    });
+  });
+  cntDisplay(cntGetSet());
+
+  $('timer-start').addEventListener('click', () => {
+    if (cntRunning) return;
+    if (!cntRemaining) cntRemaining = cntGetSet();
+    if (!cntRemaining) return;
+    cntRunning = true;
+    $('timer-start').disabled = true;
+    $('timer-pause').disabled = false;
+    const endTime = Date.now() + cntRemaining;
+    cntInterval = setInterval(() => {
+      cntRemaining = endTime - Date.now();
+      if (cntRemaining <= 0) {
+        cntRemaining = 0;
+        clearInterval(cntInterval);
+        cntRunning = false;
+        $('timer-start').disabled = false;
+        $('timer-pause').disabled = true;
+        cntDisplay(0);
+        // pulse the display
+        $('timer-display').style.color = 'var(--danger)';
+        setTimeout(() => { $('timer-display').style.color = ''; }, 3000);
+      } else {
+        cntDisplay(cntRemaining);
+      }
+    }, 200);
+  });
+
+  $('timer-pause').addEventListener('click', () => {
+    clearInterval(cntInterval);
+    cntRunning = false;
+    $('timer-start').disabled = false;
+    $('timer-pause').disabled = true;
+  });
+
+  $('timer-reset').addEventListener('click', () => {
+    clearInterval(cntInterval);
+    cntRunning = false;
+    cntRemaining = 0;
+    $('timer-start').disabled = false;
+    $('timer-pause').disabled = true;
+    cntDisplay(cntGetSet());
+    $('timer-display').style.color = '';
+  });
+
+  /* ══════════════════════════════════════════════════════════════════════
+     UNIT CONVERTER
+  ══════════════════════════════════════════════════════════════════════ */
+  // Conversion factors to base unit
+  const convFactors = {
+    length: { m:1, km:1e3, cm:1e-2, mm:1e-3, mi:1609.344, yd:0.9144, ft:0.3048, in:0.0254 },
+    weight: { kg:1, g:1e-3, lb:0.453592, oz:0.0283495, t:1e3, st:6.35029 },
+    speed:  { ms:1, kmh:1/3.6, mph:0.44704, kn:0.514444 },
+    area:   { m2:1, km2:1e6, cm2:1e-4, ha:1e4, ac:4046.86, ft2:0.092903, mi2:2.59e6 },
+  };
+
+  function convertLinear(type, val, from, to) {
+    const f = convFactors[type];
+    return (val * f[from]) / f[to];
+  }
+
+  function convertTemp(val, from, to) {
+    let c;
+    if (from === 'C') c = val;
+    else if (from === 'F') c = (val - 32) * 5/9;
+    else c = val - 273.15;
+    if (to === 'C') return c;
+    if (to === 'F') return c * 9/5 + 32;
+    return c + 273.15;
+  }
+
+  function doConvert(type) {
+    let val, from, to, result;
+    if (type === 'length') {
+      val = parseFloat($('len-val').value); from = $('len-from').value; to = $('len-to').value;
+      result = convertLinear('length', val, from, to);
+    } else if (type === 'weight') {
+      val = parseFloat($('wt-val').value); from = $('wt-from').value; to = $('wt-to').value;
+      result = convertLinear('weight', val, from, to);
+    } else if (type === 'temp') {
+      val = parseFloat($('tmp-val').value); from = $('tmp-from').value; to = $('tmp-to').value;
+      result = convertTemp(val, from, to);
+    } else if (type === 'speed') {
+      val = parseFloat($('spd-val').value); from = $('spd-from').value; to = $('spd-to').value;
+      result = convertLinear('speed', val, from, to);
+    } else if (type === 'area') {
+      val = parseFloat($('area-val').value); from = $('area-from').value; to = $('area-to').value;
+      result = convertLinear('area', val, from, to);
+    }
+    if (isNaN(val) || isNaN(result)) {
+      $('conv-result').textContent = '—';
+    } else {
+      const disp = parseFloat(result.toPrecision(8));
+      $('conv-result').textContent = `${val} → ${disp}`;
+    }
+  }
+
+  let activeConvType = 'length';
+  document.querySelectorAll('.conv-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.conv-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.conv-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      activeConvType = tab.dataset.conv;
+      $('conv-' + activeConvType).classList.add('active');
+      $('conv-result').textContent = '—';
+    });
+  });
+
+  ['len-val','len-from','len-to',
+   'wt-val','wt-from','wt-to',
+   'tmp-val','tmp-from','tmp-to',
+   'spd-val','spd-from','spd-to',
+   'area-val','area-from','area-to'].forEach(id => {
+    const el = $(id);
+    if (el) el.addEventListener('input', () => doConvert(activeConvType));
+  });
+
+  /* ══════════════════════════════════════════════════════════════════════
+     PASSWORD GENERATOR
+  ══════════════════════════════════════════════════════════════════════ */
+  const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const LOWER = 'abcdefghijklmnopqrstuvwxyz';
+  const NUMS  = '0123456789';
+  const SYMS  = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+  function generatePassword() {
+    const upper = $('pwd-upper').checked;
+    const lower = $('pwd-lower').checked;
+    const nums  = $('pwd-nums').checked;
+    const syms  = $('pwd-syms').checked;
+    const len   = parseInt($('pwd-len').value);
+
+    let charset = '';
+    let mandatory = [];
+    if (upper) { charset += UPPER; mandatory.push(UPPER[Math.floor(Math.random()*UPPER.length)]); }
+    if (lower) { charset += LOWER; mandatory.push(LOWER[Math.floor(Math.random()*LOWER.length)]); }
+    if (nums)  { charset += NUMS;  mandatory.push(NUMS[Math.floor(Math.random()*NUMS.length)]); }
+    if (syms)  { charset += SYMS;  mandatory.push(SYMS[Math.floor(Math.random()*SYMS.length)]); }
+
+    if (!charset) { $('pwd-output').value = ''; updatePwdStrength(''); return; }
+
+    const arr = new Uint32Array(len);
+    crypto.getRandomValues(arr);
+    let pwd = mandatory.map((_, i) => mandatory[i]);
+    for (let i = mandatory.length; i < len; i++) {
+      pwd.push(charset[arr[i] % charset.length]);
+    }
+    // Shuffle
+    for (let i = pwd.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pwd[i], pwd[j]] = [pwd[j], pwd[i]];
+    }
+    const result = pwd.join('');
+    $('pwd-output').value = result;
+    updatePwdStrength(result);
+  }
+
+  function updatePwdStrength(pwd) {
+    let score = 0;
+    if (pwd.length >= 8)  score++;
+    if (pwd.length >= 12) score++;
+    if (pwd.length >= 16) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    const pct  = pwd.length ? Math.min(100, Math.round((score / 7) * 100)) : 0;
+    const fill = $('pwd-strength-fill');
+    fill.style.width = pct + '%';
+    const labels = ['', 'Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong', 'Excellent'];
+    const colors = ['#555','#e74c3c','#e74c3c','#e67e22','#f1c40f','#2ecc71','#27ae60','#1e8449'];
+    fill.style.background = colors[score] || '#555';
+    $('pwd-strength-label').textContent = 'Strength: ' + (labels[score] || '—');
+  }
+
+  $('pwd-len').addEventListener('input', () => {
+    $('pwd-len-val').textContent = $('pwd-len').value;
+    generatePassword();
+  });
+  ['pwd-upper','pwd-lower','pwd-nums','pwd-syms'].forEach(id => {
+    $(id).addEventListener('change', generatePassword);
+  });
+  $('pwd-gen-btn').addEventListener('click', generatePassword);
+  $('pwd-copy-btn').addEventListener('click', () => {
+    const val = $('pwd-output').value;
+    if (!val) return;
+    navigator.clipboard.writeText(val).then(() => {
+      const btn = $('pwd-copy-btn');
+      btn.textContent = 'Copied!';
+      btn.style.background = 'var(--success)';
+      setTimeout(() => { btn.textContent = 'Copy'; btn.style.background = ''; }, 1500);
+    });
+  });
+
+  generatePassword();
+
+  /* ══════════════════════════════════════════════════════════════════════
+     UTILS
+  ══════════════════════════════════════════════════════════════════════ */
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  </script>
+</body>
+</html>
